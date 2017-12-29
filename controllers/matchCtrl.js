@@ -33,7 +33,11 @@ exports.createSeatMatch = (req, res, next) => {
           subArray = direction === 0 ? subArray : subArray.reverse();
           seatArray.push(subArray); 
         }
-        seatArray = seatHepler.generateSpecificSeats(nameSeat ,seatArray , seat.positionSpecific, DISABLEDSEAT);
+
+        if (seat.positionSpecific) {
+          seatArray = seatHepler.generateSpecificSeats(nameSeat ,seatArray , seat.positionSpecific, DISABLEDSEAT);          
+        }
+
         let seatDB = new SeatType({
           name: name,
           seats: seatArray,
