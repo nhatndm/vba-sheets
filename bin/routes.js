@@ -14,5 +14,5 @@ module.exports = (app) => {
   webhookRoutes.post('/webhook', webhookController.webhook);
 
   app.use('/api/v1',[matchRoutes]);
-  app.use('/api/webhook', webhookRoutes);
+  app.use('/api', webhookRoutes);
 };
