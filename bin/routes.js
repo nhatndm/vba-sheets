@@ -7,7 +7,7 @@ module.exports = (app) => {
   const webhookRoutes = express.Router();
 
   matchRoutes.post('/match/create', MatchController.createSeatMatch);
-  matchRoutes.get('/match/get', MatchController.getMatch);
+  matchRoutes.get('/match', MatchController.getMatch);
   matchRoutes.get('/match/seat', MatchController.getSeat);
   matchRoutes.post('/match/seat', MatchController.editSeat);
 

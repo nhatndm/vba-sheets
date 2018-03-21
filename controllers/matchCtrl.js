@@ -130,8 +130,8 @@ exports.editSeat = (req, res, next) => {
     let positionDisabled = req.body.position_disabled;
     seat.seats = seatHepler.generateSpecificSeats(seat.nameSeat ,seat.seats , positionDisabled, DISABLEDSEAT);
     seat.seats = seatHepler.generateSpecificSeats(seat.nameSeat ,seat.seats , positionEnabled, ENABLEDSEAT);
-
-    SeatType.findByIdAndUpdate({ _id: seat.id }, { $set: { seats: seat.seats } }, (err, seatSaved) => {
+  
+    SeatType.findByIdAndUpdate({ _id: seat.id }, { $set: { seats: seat.seats } }, { new: true }, (err, seatSaved) => {
       if (err) {
         return error(500, err, next);
       }else {
