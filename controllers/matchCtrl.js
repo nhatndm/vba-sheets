@@ -3,9 +3,9 @@ const Match = require('../models/match');
 const SeatType = require('../models/seatType');
 const _ = require('lodash');
 const nj = require('numjs');
-const seatHepler = require('../helpers/seat');
-const DISABLEDSEAT = 1;
-const ENABLEDSEAT = 0;
+const seatHelper = require('../helpers/seat');
+const DISABLED_SEAT = 1;
+const ENABLED_SEAT = 0;
 
 exports.createSeatMatch = (req, res, next) => {
   let matchID = req.body.match_id;
@@ -35,7 +35,7 @@ exports.createSeatMatch = (req, res, next) => {
         }
 
         if (seat.positionSpecific) {
-          seatArray = seatHepler.generateSpecificSeats(nameSeat ,seatArray , seat.positionSpecific, DISABLEDSEAT);          
+          seatArray = seatHelper.generateSpecificSeats(nameSeat ,seatArray , seat.positionSpecific, DISABLED_SEAT);
         }
 
         let seatDB = new SeatType({
@@ -128,8 +128,8 @@ exports.editSeat = (req, res, next) => {
 
     let positionEnabled = req.body.position_enabled;
     let positionDisabled = req.body.position_disabled;
-    seat.seats = seatHepler.generateSpecificSeats(seat.nameSeat ,seat.seats , positionDisabled, DISABLEDSEAT);
-    seat.seats = seatHepler.generateSpecificSeats(seat.nameSeat ,seat.seats , positionEnabled, ENABLEDSEAT);
+    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat ,seat.seats , positionDisabled, DISABLED_SEAT);
+    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat ,seat.seats , positionEnabled, ENABLED_SEAT);
   
     SeatType.findByIdAndUpdate({ _id: seat.id }, { $set: { seats: seat.seats } }, { new: true }, (err, seatSaved) => {
       if (err) {

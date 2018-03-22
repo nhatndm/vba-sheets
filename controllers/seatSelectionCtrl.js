@@ -1,9 +1,9 @@
-const seatHepler = require('../helpers/seat');
+const seatHelper = require('../helpers/seat');
 const SeatType = require('../models/seatType');
 const _ = require('lodash');
 const error = require('../helpers/error');
-const DISABLEDSEAT = 1;
-const ENABLEDSEAT = 0;
+const DISABLED_SEAT = 1;
+const ENABLED_SEAT = 0;
 
 module.exports = (io) => {
   io.on('connection', (client) => {
@@ -27,8 +27,8 @@ module.exports = (io) => {
     
         let positionEnabled = data.data.position_enabled;
         let positionDisabled = data.data.position_disabled;
-        seat.seats = seatHepler.generateSpecificSeats(seat.nameSeat ,seat.seats , positionDisabled, DISABLEDSEAT);
-        seat.seats = seatHepler.generateSpecificSeats(seat.nameSeat ,seat.seats , positionEnabled, ENABLEDSEAT);
+        seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat ,seat.seats , positionDisabled, DISABLED_SEAT);
+        seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat ,seat.seats , positionEnabled, ENABLED_SEAT);
       
         SeatType.findByIdAndUpdate({ _id: seat.id }, { $set: { seats: seat.seats } }, { new: true }, (err, seatSaved) => {
           if (err) {
