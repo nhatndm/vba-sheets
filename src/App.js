@@ -38,15 +38,15 @@ class App extends Component {
     console.log(token);
     var bodyFormData = new FormData();
     bodyFormData.set('access_token', token);
-    console.log(bodyFormData)
     axios.post(vbaRailsEndpoint + '/api/admin/check_access_token', bodyFormData)
       .then(function (response) {
         console.log(response);
       })
       .catch(function (error) {
+        alert('Bạn không có quyền truy cập');
         window.location.href = vbaRailsEndpoint + '/matches'
       });
-  }
+  };
 
   getParams = (name) => {
     let url = window.location.href;
@@ -78,7 +78,7 @@ class App extends Component {
       .then(function (response) {
         console.log(response);
         if (response.data) {
-          window.location.href = vbaRailsEndpoint + '/matches'
+          window.location.href = vbaRailsEndpoint + '/matches/' + this.state.matchID
         }
       })
       .catch(function (error) {

@@ -21,7 +21,7 @@ class SeatForm extends Component {
   }
 
   componentWillMount(){
-    console.log(this.props);
+    this.setState({name: this.props.seatTypes[0]});
   }
 
   addUnavailableSeatSelector = () => {
@@ -76,9 +76,7 @@ class SeatForm extends Component {
               <input className='form-control' type='number' min={0}></input>
             </div>
           </div>
-          <div className='col-md-1'>
-            <button className='btn btn-outline-secondary' onClick={this.addUnavailableSeat}>Add</button>
-          </div>
+          <button className='btn btn-outline-secondarys' onClick={this.addUnavailableSeat}>Add</button>
         </div>
       );
     }
@@ -139,13 +137,15 @@ class SeatForm extends Component {
   }
 
   addUnavailableSeat = (e) => {
+    console.log(e.target)
     let rowName = e.target.closest('div').getElementsByTagName('select')[0],
       position = e.target.closest('div').getElementsByTagName('input')[0],
       seat = rowName.value + '-' + position.value,
       unavailableSeats = this.state.unavailableSeats;
     unavailableSeats.push(seat);
     this.setState({unavailableSeats: unavailableSeats});
-  }
+    alert('Set thành công');
+  };
 
   render() {
     return (
@@ -155,7 +155,7 @@ class SeatForm extends Component {
           <div className='col-sm-9'>
             {/*<input type="text" className="form-control" onChange={this.updateName}/>*/}
 
-            <select onChange={this.updateName} defaultValue={0} className='form-control'>
+            <select onChange={this.updateName} defaultValue={this.props.seatTypes[0]} className='form-control'>
               {
                 this.props.seatTypes.map((value, index) => {
                   return (
