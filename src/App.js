@@ -101,7 +101,7 @@ class App extends Component {
         {
           this.state.seatForm.map((seat, i) => {
             return(
-              <SeatForm ref={"seat" + i} key={i} onClick={this.removeForm.bind(i)} seatId={i} seatTypes={this.state.seatTypes}/>
+              <SeatForm ref={"seat" + i} key={i} formLength={this.state.seatForm.length} onClick={this.removeForm.bind(i)} seatId={i} seatTypes={this.state.seatTypes}/>
             )
           })
         }

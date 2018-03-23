@@ -20,7 +20,7 @@ class SeatForm extends Component {
     }
   }
 
-  componentWillMount(){
+  componentWillMount() {
     this.setState({name: this.props.seatTypes[0]});
   }
 
@@ -147,13 +147,21 @@ class SeatForm extends Component {
     alert('Set thành công');
   };
 
+  renderRemoveBtn = () => {
+    if (this.props.formLength > 1)
+      return (
+        <div className='card-header'>
+          <button className='btn btn-outline-danger float-right' onClick={this.props.onClick}>Remove</button>
+        </div>
+      )
+  }
 
   render() {
     return (
       <div className='card'>
-        <div className='card-header'>
-          <button className='btn btn-outline-danger float-right' onClick={this.props.onClick}>Remove</button>
-        </div>
+        {
+          this.renderRemoveBtn()
+        }
         <div className='card-body'>
           <div className='form-group row'>
             <label className='col-sm-3 col-form-label'>Type:</label>
