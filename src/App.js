@@ -17,7 +17,6 @@ class App extends Component {
     super();
     this.verifyToken(this.getParams('access_token'));
     this.state = {
-      formItems: 1,
       seats: [],
       matchID: 0,
       matchIDGet: 0,
@@ -27,13 +26,15 @@ class App extends Component {
       disableSeatCount: 0,
       enableSeats: [],
       disableSeats: [],
-      seatTypes: []
+      seatTypes: [],
+      seatForm: [{}]
     };
     this.state.matchID = parseInt(this.getParams('id'), 10);
     if (this.getParams('seat_types')) {
       this.state.seatTypes = this.getParams('seat_types').split(',')
     }
   }
+
   verifyToken = (token) => {
     console.log(token);
     var bodyFormData = new FormData();
@@ -56,16 +57,19 @@ class App extends Component {
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
-  }
+  };
 
 
   addSeatForm = () => {
-    this.setState({formItems: this.state.formItems + 1});
-  }
+    this.state.seatForm.push({});
+    this.setState({seatForm: this.state.seatForm})
+  };
 
   onSave = () => {
     let seats = this.state.seats;
-    for (let i = 0; i < this.state.formItems; i++) {
+    let id = this.state.matchID;
+    console.log(this.state.seatForm);
+    for (let i = 0; i < this.state.seatForm.length; i++) {
       seats.push(this.refs['seat' + i].getData());
     }
     this.setState({seats: seats});
@@ -73,49 +77,62 @@ class App extends Component {
       'match_id': this.state.matchID,
       'seats': this.state.seats,
       'access_token': this.getParams('access_token')
-    }
+    };
     axios.post(api + '/match/create', data)
       .then(function (response) {
-        console.log(response);
         if (response.data) {
-          window.location.href = vbaRailsEndpoint + '/matches/' + this.state.matchID
+          window.location.href = vbaRailsEndpoint + '/matches/' + id
         }
       })
       .catch(function (error) {
-        console.log(error);
+        alert('Có lỗi trong khi tạo');
+        window.location.href = vbaRailsEndpoint + '/matches/' + id
       });
   };
 
   onCancel = () => {
     window.location.href = vbaRailsEndpoint + '/matches'
-  }
+  };
 
   renderSeatForm = () => {
     // console.log(this.state.seatTypes);
-    let forms = [];
-    for (let i = 0; i < this.state.formItems; i++) {
-      forms.push(
-        <SeatForm ref={"seat" + i} key={i} seatTypes={this.state.seatTypes}/>
+    return (
+      <div>
+        {
+          this.state.seatForm.map((seat, i) => {
+            return(
+              <SeatForm ref={"seat" + i} key={i} onClick={this.removeForm.bind(i)} seatId={i} seatTypes={this.state.seatTypes}/>
+            )
+          })
+        }
+      </div>
       )
-    }
-    return forms;
-  }
+  };
+
+
+  //
+
+  removeForm = (i) => {
+    console.log(i);
+    this.state.seatForm.splice(i, 1);
+    console.log(this.state.seatForm);
+    this.setState({seatForm: this.state.seatForm});
+  };
+
 
   updateMatchID = (e) => {
     this.setState({matchID: parseInt(e.target.value, 10)});
-  }
+  };
 
   getMatchInfo = () => {
     let id = this.state.matchIDGet;
     axios.get(api + '/match?match_id=' + id, {})
       .then((response) => {
-        console.log(response.data)
         this.setState({matchData: response.data});
       })
       .catch((error) => {
-        console.log(error);
       });
-  }
+  };
 
   renderSeatMap = () => {
     let matchData = this.state.matchData,
@@ -135,10 +152,10 @@ class App extends Component {
             {this.renderSeatMapItem(obj.seats, obj.nameSeat)}
           </div>
         )
-      })
+      });
       return seatMap;
     }
-  }
+  };
 
   renderSeatMapItem = (seats, nameSeat) => {
     let seatsElement = [];
@@ -151,7 +168,7 @@ class App extends Component {
       );
     });
     return seatsElement;
-  }
+  };
 
   renderSeats = (item) => {
     let itemElement = [];
@@ -159,15 +176,15 @@ class App extends Component {
       itemElement.push(<Seat key={index} name={obj.name} status={obj.status}/>);
     });
     return itemElement;
-  }
+  };
 
   updateMatchIDGet = (e) => {
     this.setState({matchIDGet: e.target.value});
-  }
+  };
 
   toggleEditMode = () => {
     this.setState({isEdit: !this.state.isEdit});
-  }
+  };
 
   renderDisableSeatsSelector = (index) => {
     let disableSeats = [],
@@ -186,14 +203,14 @@ class App extends Component {
             }
           </select>
           <span>Position: </span>
-          <input type='number' min={0}></input>
+          <input type='number' min={0}/>
           <button onClick={this.addDisableSeat}>Add</button>
         </div>
       );
     }
 
     return disableSeats;
-  }
+  };
 
   renderEnableSeatsSelector = (index) => {
     let enableSeats = [],
@@ -219,7 +236,7 @@ class App extends Component {
     }
 
     return enableSeats;
-  }
+  };
 
   renderEditForm = (index) => {
     if (this.state.isEdit) {
@@ -239,15 +256,15 @@ class App extends Component {
         </div>
       );
     }
-  }
+  };
 
   addEnableSeatSelector = () => {
     this.setState({enableSeatCount: this.state.enableSeatCount + 1});
-  }
+  };
 
   addDisableSeatSelector = () => {
     this.setState({disableSeatCount: this.state.disableSeatCount + 1});
-  }
+  };
 
   addDisableSeat = (e) => {
     let nameSeat = e.target.closest('div').getElementsByTagName('select')[0],
@@ -257,7 +274,7 @@ class App extends Component {
     disableSeats.push(seat);
     disableSeats = _.uniq(disableSeats);
     this.setState({disableSeats: disableSeats});
-  }
+  };
 
   addEnableSeat = (e) => {
     let nameSeat = e.target.closest('div').getElementsByTagName('select')[0],
@@ -267,7 +284,7 @@ class App extends Component {
     enableSeats.push(seat);
     enableSeats = _.uniq(enableSeats);
     this.setState({enableSeats: enableSeats});
-  }
+  };
 
   updateSeatStatus = (index) => {
     let data = {
@@ -283,7 +300,7 @@ class App extends Component {
       .catch((error) => {
         console.log(error);
       });
-  }
+  };
 
   render() {
     return (

@@ -147,76 +147,82 @@ class SeatForm extends Component {
     alert('Set thành công');
   };
 
+
   render() {
     return (
       <div className='card'>
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Type:</label>
-          <div className='col-sm-9'>
-            {/*<input type="text" className="form-control" onChange={this.updateName}/>*/}
+        <div className='card-header'>
+          <button className='btn btn-outline-danger float-right' onClick={this.props.onClick}>Remove</button>
+        </div>
+        <div className='card-body'>
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Type:</label>
+            <div className='col-sm-9'>
+              {/*<input type="text" className="form-control" onChange={this.updateName}/>*/}
 
-            <select onChange={this.updateName} defaultValue={this.props.seatTypes[0]} className='form-control'>
-              {
-                this.props.seatTypes.map((value, index) => {
-                  return (
-                    <option key={index} value={value}>{value}</option>
-                  )
-                })
-              }
-            </select>
+              <select onChange={this.updateName} defaultValue={this.props.seatTypes[0]} className='form-control'>
+                {
+                  this.props.seatTypes.map((value, index) => {
+                    return (
+                      <option key={index} value={value}>{value}</option>
+                    )
+                  })
+                }
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Number of row:</label>
-          <div className='col-sm-9'>
-            <input type="number" className="form-control" min={0} defaultValue={0} onChange={this.updateRowValue}/>
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Number of row:</label>
+            <div className='col-sm-9'>
+              <input type="number" className="form-control" min={0} defaultValue={0} onChange={this.updateRowValue}/>
+            </div>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Number of column:</label>
-          <div className='col-sm-9'>
-            <input type="number" className="form-control" min={0} defaultValue={0} onChange={this.updateColValue}/>
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Number of column:</label>
+            <div className='col-sm-9'>
+              <input type="number" className="form-control" min={0} defaultValue={0} onChange={this.updateColValue}/>
+            </div>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Start number:</label>
-          <div className='col-sm-9'>
-            <input className="form-control" type='number' min={0} onChange={this.updateStartNumber}/>
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Start number:</label>
+            <div className='col-sm-9'>
+              <input className="form-control" type='number' min={0} onChange={this.updateStartNumber}/>
+            </div>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Seat row name:</label>
-        </div>
-
-        <div className='form-group row'>
-          <div className='offset-md-3 col-sm-9'>
-            {this.renderSeatRowNames()}
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Seat row name:</label>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Direction:</label>
-          <div className='col-sm-9'>
-            <select className="form-control" defaultValue={0} onChange={this.updateDirection}>
-              <option value={0}>Left to right</option>
-              <option value={1}>Right to left</option>
-            </select>
+          <div className='form-group row'>
+            <div className='offset-md-3 col-sm-9'>
+              {this.renderSeatRowNames()}
+            </div>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          <label className='col-sm-3 col-form-label'>Unavailable Seats::</label>
-          <div className='col-sm-9'>
-            <button className='btn btn-outline-secondary' onClick={this.addUnavailableSeatSelector}>Add</button>
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Direction:</label>
+            <div className='col-sm-9'>
+              <select className="form-control" defaultValue={0} onChange={this.updateDirection}>
+                <option value={0}>Left to right</option>
+                <option value={1}>Right to left</option>
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div className='form-group row'>
-          {this.renderUnavailableSeatsSelector()}
+          <div className='form-group row'>
+            <label className='col-sm-3 col-form-label'>Unavailable Seats::</label>
+            <div className='col-sm-9'>
+              <button className='btn btn-outline-secondary' onClick={this.addUnavailableSeatSelector}>Add</button>
+            </div>
+          </div>
+
+          <div className='form-group row'>
+            {this.renderUnavailableSeatsSelector()}
+          </div>
         </div>
       </div>
     );

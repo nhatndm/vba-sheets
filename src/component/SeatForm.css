@@ -6,6 +6,9 @@
 
 .card {
     margin-top: 20px;
+}
+
+.card-body {
     padding: 15px;
 }
 
