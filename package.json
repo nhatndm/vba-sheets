@@ -6,7 +6,7 @@
   "scripts": {
     "start-server": "node ./bin/server",
     "development": "./node_modules/.bin/nodemon ./bin/server.js",
-    "start-client": "react-scripts start",
+    "start-client": "PORT=3003 react-scripts start",
     "build-client": "react-scripts build",
     "test-client": "react-scripts test --env=jsdom",
     "eject-client": "react-scripts eject"

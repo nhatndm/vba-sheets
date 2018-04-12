@@ -4,7 +4,8 @@ const SeatType = require('../models/seatType');
 const _ = require('lodash');
 const nj = require('numjs');
 const seatHelper = require('../helpers/seat');
-const DISABLED_SEAT = 1;
+const DISABLED_SEAT = 2;
+const SELECTED_SEAT = 1;
 const ENABLED_SEAT = 0;
 
 exports.createSeatMatch = (req, res, next) => {
@@ -14,36 +15,58 @@ exports.createSeatMatch = (req, res, next) => {
   _.forEach(seatsReq, (seat) => {
     seats.push(
       new Promise((resolve, reject) => {
-        let seatArray = [];
-        let numberOfX = seat.number_of_x;
-        let numberOfY = seat.number_of_y;
-        let startNumber = seat.start_number;
-        let stopNumber = seat.start_number + numberOfX;
-        let direction = seat.direction;
-        let nameSeat = seat.name_seat;
         let name = seat.name;
-        for(let i = 0; i < numberOfY; i++) {
-          let subArray = nj.arange(startNumber, stopNumber).tolist();
-          subArray = _.map(subArray, (value) => {
-            return {
-              name: value,
-              status: 0,
+        let row = seat.row;
+        let col = seat.col;
+        let blocks = [];
+        // TODO make this to blocks []
+        let blockLength = seat.blocks.length;
+        for (let i = 0; i<blockLength; i++) {
+          let block = seat.blocks[i]
+          console.log('req block: ', block);
+          let direction = block.direction;
+          let seatArray = [];
+          let numberOfX = block.endCol - block.startCol + 1;
+          let numberOfY = block.endRow - block.startRow + 1;
+          let startNumber = block.startNumber;
+          let stopNumber = block.startNumber + numberOfX;
+          let nameSeat = block.rowNames;
+          for (let i = 0; i < numberOfY; i++) {
+            let subArray = nj.arange(startNumber, stopNumber).tolist();
+            subArray = _.map(subArray, (value) => {
+              return {
+                name: value,
+                status: 0,
+              }
+            });
+            subArray = (direction === 0) ? subArray : subArray.reverse();
+            seatArray.push(subArray);
+          }
+          if (block.unavailableSeats) {
+            seatArray = seatHelper.generateSpecificSeats(nameSeat, seatArray, block.unavailableSeats, DISABLED_SEAT);
+          }
+          blocks.push({
+            seats: seatArray,
+            nameSeat: nameSeat,
+            direction: direction,
+            startNumber: startNumber,
+            position: {
+              col: {
+                start: block.startCol,
+                end: block.endCol
+              },
+              row: {
+                start: block.startRow,
+                end: block.endRow
+              }
             }
-          });
-          subArray = direction === 0 ? subArray : subArray.reverse();
-          seatArray.push(subArray); 
+          })
         }
-
-        if (seat.positionSpecific) {
-          seatArray = seatHelper.generateSpecificSeats(nameSeat ,seatArray , seat.positionSpecific, DISABLED_SEAT);
-        }
-
         let seatDB = new SeatType({
           name: name,
-          seats: seatArray,
-          nameSeat: nameSeat,
-          startNumber: startNumber,
-          direction: direction,
+          row: row,
+          col: col,
+          blocks: blocks
         });
         seatDB.save((err, seatSaved) => {
           if (err) {
@@ -55,25 +78,25 @@ exports.createSeatMatch = (req, res, next) => {
       })
     )
   });
-  
+
   const generateMatch = new Promise((resolve, reject) => {
     Promise.all(seats)
-         .then((value) => {
-            let matchDB = new Match({
-              matchID: matchID,
-              seatTypes: value
-            });
-            matchDB.save((err, matchSaved) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve(matchSaved);
-              }
-            });
-         })
-         .catch((err) => {
+      .then((value) => {
+        let matchDB = new Match({
+          matchID: matchID,
+          seatTypes: value
+        });
+        matchDB.save((err, matchSaved) => {
+          if (err) {
             reject(err);
-         });
+          } else {
+            resolve(matchSaved);
+          }
+        });
+      })
+      .catch((err) => {
+        reject(err);
+      });
   });
 
   generateMatch.then((value) => {
@@ -87,10 +110,10 @@ exports.createSeatMatch = (req, res, next) => {
 
 exports.getMatch = (req, res, next) => {
   let matchID = req.query.match_id;
-  Match.findOne({ matchID: matchID }).populate('seatTypes').exec((err, match) => {
+  Match.findOne({matchID: matchID}).populate('seatTypes').exec((err, match) => {
     if (err) {
       return error(500, err, next);
-    } 
+    }
 
     if (!match) {
       return error(404, 'Can not find this match', next);
@@ -105,12 +128,12 @@ exports.getSeat = (req, res, next) => {
   SeatType.findById(seatID, (err, seat) => {
     if (err) {
       return error(500, err, next);
-    } 
+    }
 
     if (!seat) {
       return error(404, 'Can not find this seat', next);
     }
-      
+
     res.status(200).send(seats);
   });
 };
@@ -120,7 +143,7 @@ exports.editSeat = (req, res, next) => {
   SeatType.findById(seatID, (err, seat) => {
     if (err) {
       return error(500, err, next);
-    } 
+    }
 
     if (!seat) {
       return error(404, 'Can not find this seat', next);
@@ -128,13 +151,13 @@ exports.editSeat = (req, res, next) => {
 
     let positionEnabled = req.body.position_enabled;
     let positionDisabled = req.body.position_disabled;
-    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat ,seat.seats , positionDisabled, DISABLED_SEAT);
-    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat ,seat.seats , positionEnabled, ENABLED_SEAT);
-  
-    SeatType.findByIdAndUpdate({ _id: seat.id }, { $set: { seats: seat.seats } }, { new: true }, (err, seatSaved) => {
+    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat, seat.seats, positionDisabled, SELECTED_SEAT);
+    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat, seat.seats, positionEnabled, ENABLED_SEAT);
+
+    SeatType.findByIdAndUpdate({_id: seat.id}, {$set: {seats: seat.seats}}, {new: true}, (err, seatSaved) => {
       if (err) {
         return error(500, err, next);
-      }else {
+      } else {
         res.status(201).send(seatSaved);
       }
     })

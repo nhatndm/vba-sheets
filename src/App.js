@@ -4,8 +4,8 @@ import _ from 'lodash';
 import logo from './logo.svg';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import SeatForm from './component/SeatForm';
-import Seat from './component/Seat';
+import SeatForm from './component/seat/SeatForm';
+import Seat from './component/seat/Seat';
 import {BrowserRouter as Router, Route} from 'react-router-dom'
 
 
@@ -15,7 +15,7 @@ const vbaRailsEndpoint = 'http://localhost:3000';
 class App extends Component {
   constructor() {
     super();
-    this.verifyToken(this.getParams('access_token'));
+    // this.verifyToken(this.getParams('access_token'));
     this.state = {
       seats: [],
       matchID: 0,
@@ -36,7 +36,6 @@ class App extends Component {
   }
 
   verifyToken = (token) => {
-    console.log(token);
     var bodyFormData = new FormData();
     bodyFormData.set('access_token', token);
     axios.post(vbaRailsEndpoint + '/api/admin/check_access_token', bodyFormData)
@@ -45,7 +44,7 @@ class App extends Component {
       })
       .catch(function (error) {
         alert('Bạn không có quyền truy cập');
-        window.location.href = vbaRailsEndpoint + '/matches'
+        // window.location.href = vbaRailsEndpoint + '/matches'
       });
   };
 
@@ -58,7 +57,6 @@ class App extends Component {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
   };
-
 
   addSeatForm = () => {
     this.state.seatForm.push({});
@@ -73,6 +71,7 @@ class App extends Component {
       seats.push(this.refs['seat' + i].getData());
     }
     this.setState({seats: seats});
+    console.log(this.state)
     let data = {
       'match_id': this.state.matchID,
       'seats': this.state.seats,
@@ -95,7 +94,6 @@ class App extends Component {
   };
 
   renderSeatForm = () => {
-    // console.log(this.state.seatTypes);
     return (
       <div>
         {
@@ -109,16 +107,12 @@ class App extends Component {
       )
   };
 
-
-  //
-
   removeForm = (i) => {
     console.log(i);
     this.state.seatForm.splice(i, 1);
     console.log(this.state.seatForm);
     this.setState({seatForm: this.state.seatForm});
   };
-
 
   updateMatchID = (e) => {
     this.setState({matchID: parseInt(e.target.value, 10)});
@@ -305,21 +299,7 @@ class App extends Component {
   render() {
     return (
       <div className={'container'}>
-        {/*<div>*/}
-        {/*<h3>Get Match Info</h3>*/}
-        {/*<span>Match ID: </span>*/}
-
-        {/*<div className={'form-inline'}>*/}
-        {/*<div className={'form-group mb-2'}>*/}
-        {/*<input className={'form-control'} type='text' onChange={this.updateMatchIDGet}></input>*/}
-        {/*</div>*/}
-        {/*<button className={'btn btn-primary mb-2'} onClick={this.getMatchInfo}>Get</button>*/}
-        {/*</div>*/}
-        {/*<div>*/}
-        {/*{this.renderSeatMap()}*/}
-        {/*</div>*/}
-        {/*</div>*/}
-        <div className='col-md-8 offset-md-2'>
+        <div className='col-md-12'>
           <h3 className='text-center'>Create seats for match</h3>
           <div>
             <button className='btn btn-outline-secondary' onClick={this.addSeatForm}>Add Seat Type</button>
