@@ -15,15 +15,16 @@ exports.createSeatMatch = (req, res, next) => {
   _.forEach(seatsReq, (seat) => {
     seats.push(
       new Promise((resolve, reject) => {
+        console.log(seat);
         let name = seat.name;
         let row = seat.row;
         let col = seat.col;
+        let price = Number(seat.price);
         let blocks = [];
         // TODO make this to blocks []
         let blockLength = seat.blocks.length;
         for (let i = 0; i<blockLength; i++) {
           let block = seat.blocks[i]
-          console.log('req block: ', block);
           let direction = block.direction;
           let seatArray = [];
           let numberOfX = block.endCol - block.startCol + 1;
@@ -66,7 +67,8 @@ exports.createSeatMatch = (req, res, next) => {
           name: name,
           row: row,
           col: col,
-          blocks: blocks
+          blocks: blocks,
+          price: price
         });
         seatDB.save((err, seatSaved) => {
           if (err) {

@@ -59,11 +59,13 @@ const SeatTypeSchema = Schema({
   },
   row: {
     type: Number,
-    min: [1, 'Row must greater than 0']
+    min: [1, 'Row must greater than 0'],
+    required: true
   },
   col: {
     type: Number,
-    min: [1, 'Column must greater than 0']
+    min: [1, 'Column must greater than 0'],
+    required: true
   },
   blocks: {
     type: [BlockSchema],
@@ -73,6 +75,9 @@ const SeatTypeSchema = Schema({
       },
       message: 'Must have at least one block'
     }
+  },
+  price: {
+    type: Number
   }
 }, {
   timestamps: true,

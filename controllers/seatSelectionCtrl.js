@@ -28,7 +28,6 @@ module.exports = (io) => {
           return console.log(err)
         }
         let blocks = type.blocks;
-        console.log('stt', data.status)
         blocks[data.block].seats[data.row][data.col].status = data.status;
         SeatType.findByIdAndUpdate({_id: type._id}, {$set: {blocks: blocks}}, {new: true}, (err, seatSaved) => {
           if (err) {

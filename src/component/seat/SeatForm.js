@@ -1,15 +1,13 @@
 import React, {Component} from 'react';
-import axios from 'axios';
 import './SeatForm.css';
 import BlockForm from '../block/BlockForm'
-const api = 'http://192.168.3.54:3000/api/v1';
-const vbaRailsEndpoint = 'http://localhost:3000';
 
 class SeatForm extends Component {
   constructor() {
     super();
     this.state = {
       name: '',
+      price: 0,
       row: 0,
       col: 0,
       blocks: [{}]
@@ -35,9 +33,10 @@ class SeatForm extends Component {
 
     let data = {
       'name': this.state.name,
-      'row': parseInt(this.state.col),
-      'col': parseInt(this.state.row),
-      'blocks': blocks
+      'row': Number(this.state.col),
+      'col': Number(this.state.row),
+      'blocks': blocks,
+      'price': this.state.price
     }
 
     return data;
@@ -45,6 +44,10 @@ class SeatForm extends Component {
 
   updateName = (e) => {
     this.setState({name: e.target.value});
+  };
+
+  updatePrice = (e) => {
+    this.setState({price: e.target.value});
   };
 
   updateColValue = (e) => {
@@ -102,6 +105,12 @@ class SeatForm extends Component {
                     })
                   }
                 </select>
+              </div>
+            </div>
+            <div className='form-group col-md-6 row'>
+              <label className='col-sm-4 col-form-label'>Price:</label>
+              <div className='col-sm-8'>
+                <input className='form-control' type="number" min="0.00" max="10000000.00" step="10000" onChange={this.updatePrice} />
               </div>
             </div>
           </div>

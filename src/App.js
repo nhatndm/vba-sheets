@@ -1,13 +1,11 @@
 import React, {Component} from 'react';
 import axios from 'axios';
 import _ from 'lodash';
-import logo from './logo.svg';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import SeatForm from './component/seat/SeatForm';
 import Seat from './component/seat/Seat';
-import {BrowserRouter as Router, Route} from 'react-router-dom'
-
+// import {BrowserRouter as Router, Route} from 'react-router-dom'
 
 const api = 'http://localhost:3002/api/v1';
 const vbaRailsEndpoint = 'http://localhost:3000';
