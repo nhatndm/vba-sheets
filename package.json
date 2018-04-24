@@ -12,6 +12,7 @@
     "eject-client": "react-scripts eject"
   },
   "dependencies": {
+    "async": "^2.6.0",
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
     "bootstrap": "^4.0.0",
@@ -22,6 +23,7 @@
     "lodash": "^4.17.4",
     "log-symbols": "^2.1.0",
     "mongoose": "^5.0.0",
+    "mongoose-autopopulate": "^0.6.1",
     "multidimensional": "^1.0.1",
     "node-cmd": "^3.0.0",
     "nodemon": "^1.14.3",

@@ -1,29 +1,29 @@
 const error = require('../helpers/error');
 const Match = require('../models/match');
 const SeatType = require('../models/seatType');
+const Seat = require('../models/seat');
 const _ = require('lodash');
 const nj = require('numjs');
 const seatHelper = require('../helpers/seat');
 const DISABLED_SEAT = 2;
 const SELECTED_SEAT = 1;
 const ENABLED_SEAT = 0;
+const async = require('async')
 
 exports.createSeatMatch = (req, res, next) => {
   let matchID = req.body.match_id;
   let seatsReq = req.body.seats;
-  let seats = [];
+  let seatTypes = [];
   _.forEach(seatsReq, (seat) => {
-    seats.push(
-      new Promise((resolve, reject) => {
-        console.log(seat);
+    seatTypes.push(
+      new Promise(async (resolve, reject) => {
         let name = seat.name;
         let row = seat.row;
         let col = seat.col;
         let price = Number(seat.price);
         let blocks = [];
-        // TODO make this to blocks []
         let blockLength = seat.blocks.length;
-        for (let i = 0; i<blockLength; i++) {
+        for (let i = 0; i < blockLength; i++) {
           let block = seat.blocks[i]
           let direction = block.direction;
           let seatArray = [];
@@ -34,35 +34,50 @@ exports.createSeatMatch = (req, res, next) => {
           let nameSeat = block.rowNames;
           for (let i = 0; i < numberOfY; i++) {
             let subArray = nj.arange(startNumber, stopNumber).tolist();
+            let rowPromise = []
             subArray = _.map(subArray, (value) => {
-              return {
-                name: value,
-                status: 0,
-              }
+              rowPromise.push(
+                new Promise((resolve, reject) => {
+                  let seat = new Seat({
+                    name: value,
+                    status: 0,
+                  })
+                  seat.save((err, data) => {
+                    if (err) reject(err)
+                    else {
+                      resolve(data)
+                    }
+                  })
+                })
+              )
             });
-            subArray = (direction === 0) ? subArray : subArray.reverse();
-            seatArray.push(subArray);
-          }
-          if (block.unavailableSeats) {
-            seatArray = seatHelper.generateSpecificSeats(nameSeat, seatArray, block.unavailableSeats, DISABLED_SEAT);
-          }
-          blocks.push({
-            seats: seatArray,
-            nameSeat: nameSeat,
-            direction: direction,
-            startNumber: startNumber,
-            position: {
-              col: {
-                start: block.startCol,
-                end: block.endCol
-              },
-              row: {
-                start: block.startRow,
-                end: block.endRow
+            await Promise.all(rowPromise).then((value) => {
+              value = (direction === 0) ? value : value.reverse();
+              seatArray.push(value);
+              console.log(seatArray)
+              if (block.unavailableSeats) {
+                seatArray = seatHelper.generateSpecificSeats(nameSeat, seatArray, block.unavailableSeats, DISABLED_SEAT);
               }
-            }
-          })
+              blocks.push({
+                seats: seatArray,
+                nameSeat: nameSeat,
+                direction: direction,
+                startNumber: startNumber,
+                position: {
+                  col: {
+                    start: block.startCol,
+                    end: block.endCol
+                  },
+                  row: {
+                    start: block.startRow,
+                    end: block.endRow
+                  }
+                }
+              })
+            })
+          }
         }
+        console.log(blocks)
         let seatDB = new SeatType({
           name: name,
           row: row,
@@ -82,7 +97,7 @@ exports.createSeatMatch = (req, res, next) => {
   });
 
   const generateMatch = new Promise((resolve, reject) => {
-    Promise.all(seats)
+    Promise.all(seatTypes)
       .then((value) => {
         let matchDB = new Match({
           matchID: matchID,
@@ -117,16 +132,37 @@ exports.getMatch = (req, res, next) => {
       return error(500, err, next);
     }
 
-    if (!match) {
-      return error(404, 'Can not find this match', next);
-    }
+    SeatType.populate(match, {
+      path: 'seatTypes.blocks.seats',
+      model: Seat // <== We are populating phones so we need to use the correct model, not User
+    }, function (err, doc) {
+      if (!match) {
+        return error(404, 'Can not find this match', next);
+      }
 
-    res.status(200).send(match);
+      res.status(200).send(match);
+    });
   });
 };
 
 exports.getSeat = (req, res, next) => {
   let seatID = req.query.seat_id;
+  Folder.findOneAndUpdate(
+    {
+      "_id": seatID, "blocks.seats": {
+        $in: []
+      }
+    },
+    {
+      "$set": {
+        "permissions.$": permission
+      }
+    },
+    function (err, doc) {
+
+    }
+  );
+
   SeatType.findById(seatID, (err, seat) => {
     if (err) {
       return error(500, err, next);
@@ -140,28 +176,17 @@ exports.getSeat = (req, res, next) => {
   });
 };
 
-exports.editSeat = (req, res, next) => {
-  let seatID = req.body.seat_id;
-  SeatType.findById(seatID, (err, seat) => {
-    if (err) {
-      return error(500, err, next);
-    }
-
-    if (!seat) {
-      return error(404, 'Can not find this seat', next);
-    }
-
-    let positionEnabled = req.body.position_enabled;
-    let positionDisabled = req.body.position_disabled;
-    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat, seat.seats, positionDisabled, SELECTED_SEAT);
-    seat.seats = seatHelper.generateSpecificSeats(seat.nameSeat, seat.seats, positionEnabled, ENABLED_SEAT);
-
-    SeatType.findByIdAndUpdate({_id: seat.id}, {$set: {seats: seat.seats}}, {new: true}, (err, seatSaved) => {
+exports.editSeat = async (req, res, next) => {
+  let seats = req.body.seats;
+  if (!seats) {
+    return error(422, 'Missing params!', next)
+  }
+  await req.body.seats.forEach((seat) => {
+    Seat.findByIdAndUpdate(seat, {$set: {status: 0}}, {new: true},(err, dataSaved) => {
       if (err) {
         return error(500, err, next);
-      } else {
-        res.status(201).send(seatSaved);
       }
     })
-  });
+  })
+  res.status(200).json({message: 'Successful'})
 }

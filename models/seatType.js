@@ -1,5 +1,17 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const mongoosePopulate = require('mongoose-autopopulate')
+
+const SeatSchema = Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: Number,
+    enum: [0, 1, 2]
+  }
+}, {_id: true})
 
 const BlockSchema = Schema({
   nameSeat: {
@@ -7,7 +19,16 @@ const BlockSchema = Schema({
     required: true,
   },
   seats: {
-    type: [[]],
+    type: [
+      [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Seat',
+          autopopulate: true,
+          index: true
+        }
+      ]
+    ],
     required: true
   },
   direction: {
@@ -50,7 +71,7 @@ const BlockSchema = Schema({
       required: true
     }
   }
-}, { _id : true })
+}, {_id: true})
 
 const SeatTypeSchema = Schema({
   name: {
@@ -82,5 +103,7 @@ const SeatTypeSchema = Schema({
 }, {
   timestamps: true,
 });
+
+BlockSchema.plugin(mongoosePopulate)
 
 module.exports = mongoose.model('SeatType', SeatTypeSchema);

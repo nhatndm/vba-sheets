@@ -1,5 +1,6 @@
 const seatHelper = require('../helpers/seat');
 const SeatType = require('../models/seatType');
+const Seat = require('../models/seat');
 const _ = require('lodash');
 const error = require('../helpers/error');
 const DISABLED_SEAT = 1;
@@ -11,6 +12,7 @@ module.exports = (io) => {
       let dataResponse = {
         seat: {
           status: data.status,
+          seatId: data.seatId,
           col: data.col,
           row: data.row,
           block: data.block,
@@ -19,25 +21,14 @@ module.exports = (io) => {
         }
       };
       io.sockets.emit('update_seat', {dataResponse});
-      SeatType.findById(data.type, (err, type) => {
+      Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status}}, (err, seatSaved) => {
         if (err) {
-          return console.log(err)
+          console.log(err)
         }
-
-        if (!type) {
-          return console.log(err)
+        else {
+          console.log(seatSaved)
         }
-        let blocks = type.blocks;
-        blocks[data.block].seats[data.row][data.col].status = data.status;
-        SeatType.findByIdAndUpdate({_id: type._id}, {$set: {blocks: blocks}}, {new: true}, (err, seatSaved) => {
-          if (err) {
-            console.log(err)
-          }
-          else {
-            console.log(seatSaved)
-          }
-        })
-      });
+      })
     })
   });
 };

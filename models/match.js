@@ -14,5 +14,4 @@ const MatchSchema = Schema({
 }, {
   timestamps: true,
 });
-
 module.exports = mongoose.model('Match', MatchSchema);
