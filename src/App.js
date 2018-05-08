@@ -8,12 +8,12 @@ import Seat from './component/seat/Seat';
 // import {BrowserRouter as Router, Route} from 'react-router-dom'
 
 const api = 'http://localhost:3002/api/v1';
-const vbaRailsEndpoint = 'http://localhost:3000';
+const vbaRailsEndpoint = 'http://d02994df.ngrok.io';
 
 class App extends Component {
   constructor() {
     super();
-    // this.verifyToken(this.getParams('access_token'));
+    this.verifyToken(this.getParams('access_token'));
     this.state = {
       seats: [],
       matchID: 0,
@@ -42,7 +42,7 @@ class App extends Component {
       })
       .catch(function (error) {
         alert('Bạn không có quyền truy cập');
-        // window.location.href = vbaRailsEndpoint + '/matches'
+        window.location.href = vbaRailsEndpoint + '/matches'
       });
   };
 
