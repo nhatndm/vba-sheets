@@ -10,6 +10,7 @@ const axios = require('axios')
 const vbaRailsEndpoint = process.env.RAILS_ENDPOINT
 
 module.exports = (io) => {
+  let listSession = [];
   io.on('connection', (client) => {
     client.on('parse_value', (data) => {
       if (!client.seat) {
@@ -43,20 +44,21 @@ module.exports = (io) => {
             let date = new Date()
             date.setMinutes(date.getMinutes() + 5)
             let job = new CronJob(date, function () {
-              axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
-                .then(function (response) {
-                  console.log(response);
-                })
-                .catch(function (error) {
-                  console.log('error: ', error)
-                  io.sockets.emit('update_seat', {
-                    seat: {
-                      status: ENABLED_SEAT,
-                      seatId: seatSaved._id
-                    }
+                axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
+                  .then(function (response) {
+                    console.log(response);
+                  })
+                  .catch(function (error) {
+                    console.log('error: ', error)
+                    io.sockets.emit('update_seat', {
+                      seat: {
+                        status: ENABLED_SEAT,
+                        seatId: seatSaved._id
+                      }
+                    });
+                    Seat.findByIdAndUpdate(seatSaved._id, {$set: {status: ENABLED_SEAT}}, (err, seatSaved) => {
+                    })
                   });
-                  Seat.findByIdAndUpdate(seatSaved._id, {$set: {status: ENABLED_SEAT}}, (err, seatSaved) => {})
-                });
               }, function () {
                 console.log('done')
               },
@@ -65,6 +67,33 @@ module.exports = (io) => {
             job.start();
           }
         })
+      }
+    });
+    client.on('disconnect', () => {
+      console.log('got disconnect')
+      console.log(client.seat)
+      console.log(client.id);
+      if (client.seat || client.seat > 0) {
+        listSession.push({
+          id: client.id,
+          seat: client.seat
+        })
+      }
+    });
+    client.on('reconnect', (session) => {
+      let obj = _.find(listSession, function (o) {
+        return o.id === session
+      });
+      if (obj) {
+        client.seat = obj.seat
+        listSession.splice(_.findIndex(listSession, function (o) {
+          return o.id === session
+        }), 1);
+        io.sockets[client.id].send('reconnect', {code: 1, message: 'reconnect successful'})
+
+      }
+      else {
+        io.sockets[client.id].send('reconnect', {code: 0, message: 'reconnect failed'})
       }
     })
   });

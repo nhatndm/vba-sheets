@@ -8,7 +8,7 @@ import Seat from './component/seat/Seat';
 // import {BrowserRouter as Router, Route} from 'react-router-dom'
 
 const api = 'http://localhost:3002/api/v1';
-const vbaRailsEndpoint = 'http://d02994df.ngrok.io';
+const vbaRailsEndpoint = 'https://vba-ticket-staging.herokuapp.com/api/zone_by_match?match_id=65';
 
 class App extends Component {
   constructor() {
