@@ -4,23 +4,35 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node ./bin/server",
-    "development": "./node_modules/.bin/nodemon ./bin/server.js"
+    "start-server": "node ./bin/server",
+    "development": "./node_modules/.bin/nodemon ./bin/server.js",
+    "start-client": "PORT=3003 react-scripts start",
+    "build-client": "react-scripts build",
+    "test-client": "react-scripts test --env=jsdom",
+    "eject-client": "react-scripts eject"
   },
   "dependencies": {
+    "async": "^2.6.0",
+    "axios": "^0.17.1",
     "body-parser": "^1.18.2",
+    "bootstrap": "^4.0.0",
     "chalk": "^2.3.0",
+    "cron": "^1.3.0",
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
     "github-api": "^3.0.0",
     "lodash": "^4.17.4",
     "log-symbols": "^2.1.0",
-    "mongoose": "^4.13.7",
+    "mongoose": "^5.0.0",
+    "mongoose-autopopulate": "^0.6.1",
     "multidimensional": "^1.0.1",
-    "newrelic": "^2.4.2",
     "node-cmd": "^3.0.0",
     "nodemon": "^1.14.3",
     "numjs": "^0.15.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-router-dom": "^4.2.2",
+    "react-scripts": "1.0.17",
     "socket.io": "^2.0.4"
   }
 }

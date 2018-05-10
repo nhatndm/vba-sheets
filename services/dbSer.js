@@ -10,7 +10,6 @@ const dbConfig = {
 
 exports.startDB = () => {
     mongoose.connect(`mongodb://${dbConfig.host}:${dbConfig.port}/${dbConfig.dbName}`, {
-    useMongoClient: true,
     user: dbConfig.dbUserName,
     pass: dbConfig.dbPassword,
     poolSize: 10,
