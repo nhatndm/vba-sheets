@@ -13,15 +13,18 @@ module.exports = (io) => {
   let listSession = [];
   io.on('connection', (client) => {
     client.on('parse_value', (data) => {
+      console.log('parse val');
       if (!client.seat) {
         client.seat = []
       }
-      if (data.status) {
+      if (data.status === DISABLED_SEAT) {
         client.seat.push(data.seatId)
       }
+      let isInSession = false;
       if (data.status === ENABLED_SEAT) {
         if (client.seat.indexOf(data.seatId) !== -1) {
           client.seat.splice(client.seat.indexOf(data.seatId), 1)
+          isInSession = true;
         }
         else {
           data.status = DISABLED_SEAT
@@ -34,7 +37,7 @@ module.exports = (io) => {
         }
       };
       io.sockets.emit('update_seat', {dataResponse});
-      if (data.status === 1) {
+      if (data.status === DISABLED_SEAT || isInSession) {
         Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status}}, (err, seatSaved) => {
           if (err) {
             console.log(err)
@@ -72,7 +75,6 @@ module.exports = (io) => {
     client.on('disconnect', () => {
       console.log('got disconnect')
       console.log(client.seat)
-      console.log(client.id);
       if (client.seat || client.seat > 0) {
         listSession.push({
           id: client.id,
@@ -80,7 +82,8 @@ module.exports = (io) => {
         })
       }
     });
-    client.on('reconnect', (session) => {
+    client.on('reconnect_session', (session) => {
+      console.log('reconnect');
       let obj = _.find(listSession, function (o) {
         return o.id === session
       });
@@ -89,11 +92,8 @@ module.exports = (io) => {
         listSession.splice(_.findIndex(listSession, function (o) {
           return o.id === session
         }), 1);
-        io.sockets[client.id].send('reconnect', {code: 1, message: 'reconnect successful'})
-
       }
       else {
-        io.sockets[client.id].send('reconnect', {code: 0, message: 'reconnect failed'})
       }
     })
   });
