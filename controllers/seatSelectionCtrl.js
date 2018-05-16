@@ -32,19 +32,21 @@ module.exports = (io) => {
       let dataResponse = {
         seat: {
           status: data.status,
-          seatId: data.seatId
+          seatId: data.seatId,
+          userId: data.userId
         }
       };
+      console.log(dataResponse);
       io.sockets.emit('update_seat', {dataResponse});
       if (data.status === DISABLED_SEAT || isInSession) {
-        Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status}}, (err, seatSaved) => {
+        Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status, userId: data.userId}}, (err, seatSaved) => {
           if (err) {
             console.log(err)
           }
           else {
-            console.log('start job')
-            let date = new Date()
-            date.setMinutes(date.getMinutes() + 5)
+            console.log('start job');
+            let date = new Date();
+            date.setMinutes(date.getMinutes() + 5);
             let job = new CronJob(date, function () {
                 axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
                   .then(function (response) {

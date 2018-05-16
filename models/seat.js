@@ -9,6 +9,9 @@ const SeatSchema = Schema({
   status: {
     type: Number,
     enum: [0, 1, 2]
+  },
+  userId: {
+    type: String
   }
 }, {
   timestamps: true,
