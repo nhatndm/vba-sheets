@@ -8,7 +8,6 @@ const ENABLED_SEAT = 0;
 const CronJob = require('cron').CronJob;
 const axios = require('axios')
 const vbaRailsEndpoint = process.env.RAILS_ENDPOINT
-
 module.exports = (io) => {
   let listSession = [];
   io.on('connection', (client) => {
@@ -72,15 +71,30 @@ module.exports = (io) => {
         })
       }
     });
-    client.on('disconnect', () => {
-      console.log('got disconnect')
-      console.log(client.seat)
-      if (client.seat || client.seat > 0) {
-        listSession.push({
-          id: client.id,
-          seat: client.seat
-        })
+    client.on('disconnect', (session_disconnect) => {
+      console.log('got disconnect');
+      console.log(client.seat);
+      console.log('session_var: ', session_disconnect);
+      if (session_disconnect !== 'server namespace disconnect') {
+        if (Array.isArray(client.seat) || client.seat > 0) {
+          Seat.update({_id: {$in: client.seat}}, {status: ENABLED_SEAT}, {multi: true}, (err, data) => {
+            if (err) {
+              console.log('err:', err)
+            }
+            else {
+              console.log('data', data)
+            }
+          })
+        }
       }
+    });
+    client.on('session_disconnect', () => {
+      listSession.push({
+        id: client.id,
+        seat: client.seat
+      });
+      client.disconnect();
+      console.log(JSON.stringify(client.packet))
     });
     client.on('reconnect_session', (session) => {
       console.log('reconnect');
