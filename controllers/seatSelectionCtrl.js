@@ -8,7 +8,6 @@ const ENABLED_SEAT = 0;
 const CronJob = require('cron').CronJob;
 const axios = require('axios')
 const vbaRailsEndpoint = process.env.RAILS_ENDPOINT
-
 module.exports = (io) => {
   let listSession = [];
   io.on('connection', (client) => {
@@ -33,19 +32,21 @@ module.exports = (io) => {
       let dataResponse = {
         seat: {
           status: data.status,
-          seatId: data.seatId
+          seatId: data.seatId,
+          userId: data.userId
         }
       };
+      console.log(dataResponse);
       io.sockets.emit('update_seat', {dataResponse});
       if (data.status === DISABLED_SEAT || isInSession) {
-        Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status}}, (err, seatSaved) => {
+        Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status, userId: data.userId}}, (err, seatSaved) => {
           if (err) {
             console.log(err)
           }
           else {
-            console.log('start job')
-            let date = new Date()
-            date.setMinutes(date.getMinutes() + 5)
+            console.log('start job');
+            let date = new Date();
+            date.setMinutes(date.getMinutes() + 5);
             let job = new CronJob(date, function () {
                 axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
                   .then(function (response) {
@@ -72,15 +73,30 @@ module.exports = (io) => {
         })
       }
     });
-    client.on('disconnect', () => {
-      console.log('got disconnect')
-      console.log(client.seat)
-      if (client.seat || client.seat > 0) {
-        listSession.push({
-          id: client.id,
-          seat: client.seat
-        })
+    client.on('disconnect', (session_disconnect) => {
+      console.log('got disconnect');
+      console.log(client.seat);
+      console.log('session_var: ', session_disconnect);
+      if (session_disconnect !== 'server namespace disconnect') {
+        if (Array.isArray(client.seat) || client.seat > 0) {
+          Seat.update({_id: {$in: client.seat}}, {status: ENABLED_SEAT}, {multi: true}, (err, data) => {
+            if (err) {
+              console.log('err:', err)
+            }
+            else {
+              console.log('data', data)
+            }
+          })
+        }
       }
+    });
+    client.on('session_disconnect', () => {
+      listSession.push({
+        id: client.id,
+        seat: client.seat
+      });
+      client.disconnect();
+      console.log(JSON.stringify(client.packet))
     });
     client.on('reconnect_session', (session) => {
       console.log('reconnect');
