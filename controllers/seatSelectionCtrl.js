@@ -12,22 +12,8 @@ module.exports = (io) => {
   let listSession = [];
   io.on('connection', (client) => {
     client.on('parse_value', (data) => {
-      console.log('parse val');
       if (!client.seat) {
         client.seat = []
-      }
-      if (data.status === DISABLED_SEAT) {
-        client.seat.push(data.seatId)
-      }
-      let isInSession = false;
-      if (data.status === ENABLED_SEAT) {
-        if (client.seat.indexOf(data.seatId) !== -1) {
-          client.seat.splice(client.seat.indexOf(data.seatId), 1)
-          isInSession = true;
-        }
-        else {
-          data.status = DISABLED_SEAT
-        }
       }
       let dataResponse = {
         seat: {
@@ -36,10 +22,27 @@ module.exports = (io) => {
           userId: data.userId
         }
       };
-      console.log(dataResponse);
-      io.sockets.emit('update_seat', {dataResponse});
-      if (data.status === DISABLED_SEAT || isInSession) {
-        Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status, userId: data.userId}}, (err, seatSaved) => {
+      let isInSession = false;
+      if (data.status === ENABLED_SEAT) {
+        Seat.findById(data.seatId, (err, seat) => {
+          if (data && data.orderStatus !== 'complete') {
+            if (client.seat.indexOf(data.seatId) !== -1) {
+              client.seat.splice(client.seat.indexOf(data.seatId), 1);
+              seat.status = data.status;
+              data.save();
+            }
+            else {
+              data.status = DISABLED_SEAT
+            }
+          }
+
+          io.sockets.emit('update_seat', {dataResponse});
+        })
+      }
+      else {
+        client.seat.push(data.seatId);
+        io.sockets.emit('update_seat', {dataResponse});
+        Seat.findByIdAndUpdate(data.seatId, {$set: {status: data.status, userId: data.userId, orderStatus: 'selected'}}, (err, seatSaved) => {
           if (err) {
             console.log(err)
           }
@@ -50,10 +53,10 @@ module.exports = (io) => {
             let job = new CronJob(date, function () {
                 axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
                   .then(function (response) {
-                    console.log(response);
+                    Seat.findByIdAndUpdate(seatSaved._id, {$set: {orderStatus: 'ordered'}}, (err, seatSaved) => {
+                    })
                   })
                   .catch(function (error) {
-                    console.log('error: ', error)
                     io.sockets.emit('update_seat', {
                       seat: {
                         status: ENABLED_SEAT,
@@ -104,7 +107,7 @@ module.exports = (io) => {
         return o.id === session
       });
       if (obj) {
-        client.seat = obj.seat
+        client.seat = obj.seat;
         listSession.splice(_.findIndex(listSession, function (o) {
           return o.id === session
         }), 1);

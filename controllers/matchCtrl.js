@@ -178,11 +178,32 @@ exports.getSeat = (req, res, next) => {
 
 exports.editSeat = async (req, res, next) => {
   let seats = req.body.seats;
+  let statusOrder = req.query.status;
+
   if (!seats) {
     return error(422, 'Missing params!', next)
   }
+  let queryUpdate = {
+    $set: {}
+  };
+  console.log(statusOrder);
+
+  if (statusOrder && statusOrder === 'complete') {
+    queryUpdate.$set = {
+      orderStatus: 'complete',
+      status: SELECTED_SEAT
+    }
+  }
+  else {
+    queryUpdate.$set = {
+      status: ENABLED_SEAT
+    }
+  }
+
+  console.log(queryUpdate);
+
   await req.body.seats.forEach((seat) => {
-    Seat.findByIdAndUpdate(seat, {$set: {status: 0}}, {new: true},(err, dataSaved) => {
+    Seat.findByIdAndUpdate(seat, queryUpdate, {new: true},(err, dataSaved) => {
       if (err) {
         return error(500, err, next);
       }
