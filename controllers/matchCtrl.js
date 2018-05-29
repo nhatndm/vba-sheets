@@ -186,7 +186,6 @@ exports.editSeat = async (req, res, next) => {
   let queryUpdate = {
     $set: {}
   };
-  console.log(statusOrder);
 
   if (statusOrder && statusOrder === 'complete') {
     queryUpdate.$set = {
@@ -200,7 +199,6 @@ exports.editSeat = async (req, res, next) => {
     }
   }
 
-  console.log(queryUpdate);
 
   await req.body.seats.forEach((seat) => {
     Seat.findByIdAndUpdate(seat, queryUpdate, {new: true},(err, dataSaved) => {
