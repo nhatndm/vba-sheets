@@ -57,18 +57,27 @@ module.exports = (io) => {
             let job = new CronJob(date, function () {
                 axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
                   .then(function (response) {
-                    Seat.findByIdAndUpdate(seatSaved._id, {$set: {orderStatus: 'ordered'}}, (err, seatSaved) => {
-                    })
+                    if (response) {
+                      Seat.findByIdAndUpdate(seatSaved._id, {
+                        $set: {
+                          orderStatus: 'ordered',
+                          status: 1
+                        }
+                      }, (err, seatSaved) => {
+                      })
+                    }
                   })
                   .catch(function (error) {
-                    io.sockets.emit('update_seat', {
-                      seat: {
-                        status: ENABLED_SEAT,
-                        seatId: seatSaved._id
-                      }
-                    });
-                    Seat.findByIdAndUpdate(seatSaved._id, {$set: {status: ENABLED_SEAT}}, (err, seatSaved) => {
-                    })
+                    if (error) {
+                      io.sockets.emit('update_seat', {
+                        seat: {
+                          status: ENABLED_SEAT,
+                          seatId: seatSaved._id
+                        }
+                      });
+                      Seat.findByIdAndUpdate(seatSaved._id, {$set: {status: ENABLED_SEAT}}, (err, seatSaved) => {
+                      })
+                    }
                   });
               }, function () {
                 console.log('done')
