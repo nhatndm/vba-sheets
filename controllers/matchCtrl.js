@@ -187,21 +187,24 @@ exports.editSeat = async (req, res, next) => {
     $set: {}
   };
 
-  if (statusOrder && statusOrder === 'complete') {
+  if (statusOrder === 'enable') {
     queryUpdate.$set = {
-      orderStatus: 'complete',
-      status: SELECTED_SEAT
-    }
-  }
-  else {
-    queryUpdate.$set = {
+      orderStatus: 'enable',
       status: ENABLED_SEAT
     }
   }
+  if (statusOrder === 'complete' || statusOrder === 'ordered') {
+    queryUpdate.$set = {
+      orderStatus: statusOrder,
+      status: SELECTED_SEAT
+    }
+  }
+
+  console.log(queryUpdate);
 
 
   await req.body.seats.forEach((seat) => {
-    Seat.findByIdAndUpdate(seat, queryUpdate, {new: true},(err, dataSaved) => {
+    Seat.findByIdAndUpdate(seat, queryUpdate, {new: true}, (err, dataSaved) => {
       if (err) {
         return error(500, err, next);
       }

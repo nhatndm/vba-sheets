@@ -15,7 +15,7 @@ const SeatSchema = Schema({
   },
   orderStatus: {
     type: String,
-    enum: ['selected', 'ordered', 'complete']
+    enum: ['enable', 'selected', 'ordered', 'complete']
   }
 }, {
   timestamps: true,

@@ -3,7 +3,7 @@ const SeatType = require('../models/seatType');
 const Seat = require('../models/seat');
 const _ = require('lodash');
 const error = require('../helpers/error');
-const DISABLED_SEAT = 1;
+const SELECTED_SEAT = 1;
 const ENABLED_SEAT = 0;
 const CronJob = require('cron').CronJob;
 const axios = require('axios')
@@ -54,31 +54,16 @@ module.exports = (io) => {
           else {
             let date = new Date();
             date.setMinutes(date.getMinutes() + 5);
-            let job = new CronJob(date, function () {
-                axios.get(vbaRailsEndpoint + '/api/check_order?seat_id=' + seatSaved._id)
-                  .then(function (response) {
-                    if (response) {
-                      Seat.findByIdAndUpdate(seatSaved._id, {
-                        $set: {
-                          orderStatus: 'ordered',
-                          status: 1
-                        }
-                      }, (err, seatSaved) => {
-                      })
-                    }
-                  })
-                  .catch(function (error) {
-                    if (error) {
-                      io.sockets.emit('update_seat', {
-                        seat: {
-                          status: ENABLED_SEAT,
-                          seatId: seatSaved._id
-                        }
-                      });
-                      Seat.findByIdAndUpdate(seatSaved._id, {$set: {status: ENABLED_SEAT}}, (err, seatSaved) => {
-                      })
-                    }
-                  });
+            let job = new CronJob(date,
+              function () {
+                Seat.findById(seatSaved._id, (err, seat) => {
+                  if (err) throw err;
+                  if (seat.orderStatus === 'selected') {
+                    seat.orderStatus = 'enable';
+                    seat.status = ENABLED_SEAT;
+                    seat.save();
+                  }
+                })
               }, function () {
                 console.log('done')
               },
@@ -89,20 +74,20 @@ module.exports = (io) => {
         })
       }
     });
-    client.on('disconnect', (session_disconnect) => {
-      if (session_disconnect !== 'server namespace disconnect') {
-        if (Array.isArray(client.seat) || client.seat > 0) {
-          Seat.update({_id: {$in: client.seat}}, {status: ENABLED_SEAT}, {multi: true}, (err, data) => {
-            if (err) {
-              console.log('err:', err)
-            }
-            else {
-              console.log('data', data)
-            }
-          })
-        }
-      }
-    });
+    // client.on('disconnect', (session_disconnect) => {
+    //   if (session_disconnect !== 'server namespace disconnect') {
+    //     if (Array.isArray(client.seat) || client.seat > 0) {
+    //       Seat.update({_id: {$in: client.seat}}, {status: ENABLED_SEAT}, {multi: true}, (err, data) => {
+    //         if (err) {
+    //           console.log('err:', err)
+    //         }
+    //         else {
+    //           console.log('data', data)
+    //         }
+    //       })
+    //     }
+    //   }
+    // });
     client.on('session_disconnect', () => {
       listSession.push({
         id: client.id,
