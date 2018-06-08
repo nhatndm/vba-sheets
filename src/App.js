@@ -7,8 +7,8 @@ import SeatForm from './component/seat/SeatForm';
 import Seat from './component/seat/Seat';
 // import {BrowserRouter as Router, Route} from 'react-router-dom'
 
-const api = 'http://localhost:3002/api/v1';
-const vbaRailsEndpoint = 'https://vba-ticket-staging.herokuapp.com/api/zone_by_match?match_id=65';
+const api = 'https://vba-seat-api.dinovative.com/api/v1';
+const vbaRailsEndpoint = 'https://vba-staging.dinovative.com/';
 
 class App extends Component {
   constructor() {
